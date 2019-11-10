@@ -1,0 +1,11 @@
+﻿@namespace BlazorFabric
+@inherits ResponsiveLayoutBase
+
+<style type="text/css">
+    @@media (min-width: 680px) {
+             
+         }
+</style>
+<CascadingValue Value=@this>
+    @ChildContent
+</CascadingValue>

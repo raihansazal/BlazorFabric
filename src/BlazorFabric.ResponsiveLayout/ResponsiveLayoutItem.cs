@@ -18,72 +18,29 @@ namespace BlazorFabric
         [Parameter] public CssValue MaxWidth { get; set; }
         [Parameter] public CssValue MinWidth { get; set; }
 
-
-        [Parameter] public string Id { get; set; }
-
-        bool IsCurrentActive = false;
-        bool jsAvailable = false;
-
-        private string _mediaQuery = "";
+        public string Id { get; set; } = Guid.NewGuid().ToString();
+        
+        public string MediaQuery { get; set; } = "";
 
         protected override async Task OnParametersSetAsync()
         {
             var tempQuery = GenerateMediaQuery();
-            if (tempQuery != _mediaQuery)
+            if (tempQuery != MediaQuery)
             {
-                _mediaQuery = tempQuery;
-                if (jsAvailable)
-                    await CascadingResponsiveLayout.AddQueryAsync(this, _mediaQuery);
+                MediaQuery = tempQuery;
+                await CascadingResponsiveLayout.AddOrUpdateAsync(this);
             }
             await base.OnParametersSetAsync();
         }
 
-        public override Task SetParametersAsync(ParameterView parameters)
-        {
-            parameters.TryGetValue("Id", out string id);
-            if (!string.IsNullOrEmpty(id) && id == "Narrow Panel")
-            {
-                foreach (var p in parameters.ToDictionary())
-                {
-                    Debug.WriteLine($"{p.Key}: {p.Value}");
-                }
-            }
-            return base.SetParametersAsync(parameters);
-        }
-
-
         protected override void BuildRenderTree(RenderTreeBuilder builder)
-        {            
-            // only render if they are the active item from ResponsiveLayout
-            if (CascadingResponsiveLayout != null && CascadingResponsiveLayout.ActiveItems.Contains(this))
-            {
-                Debug.WriteLine($"Rendering item ({Id})");
-                IsCurrentActive = true;
-                builder.AddContent(0, ChildContent);
-            }
-            else
-            {
-                IsCurrentActive = false;
-            }
-        }
-
-        public void NotifyStateChange()
         {
-            Debug.WriteLine($"Notified should change: {Id}");
-            this.StateHasChanged();
+            builder.OpenElement(0, "div");
+            builder.AddAttribute(1, "id", Id);
+            builder.AddContent(0, ChildContent);
+            builder.CloseElement();
         }
-
-        protected async override Task OnAfterRenderAsync(bool firstRender)
-        {
-            if (firstRender)
-            {
-                jsAvailable = true;
-                await CascadingResponsiveLayout.AddQueryAsync(this, _mediaQuery);
-            }
-
-            await base.OnAfterRenderAsync(firstRender);
-        }
-
+          
         private string GenerateMediaQuery()
         {
             var mediaQuery = "";
